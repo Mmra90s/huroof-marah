@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { gameStates, players, questions, rooms } from "../drizzle/schema";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -89,4 +90,92 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Game-related database helpers
+export async function createRoom(data: {
+  code: string;
+  hostId: number;
+  hostName: string;
+  gridSize: "5x5" | "4x4" | "3x3";
+  gameMode: "grid_buzzer" | "buzzer_only" | "grid_only";
+  rounds: number;
+  team1Name: string;
+  team1Color: string;
+  team2Name: string;
+  team2Color: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(rooms).values(data);
+  return result;
+}
+
+export async function getRoomByCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(rooms).where(eq(rooms.code, code)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function addPlayerToRoom(data: {
+  roomId: number;
+  userId?: number;
+  name: string;
+  team: "team1" | "team2";
+  isHost: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(players).values(data);
+  return result;
+}
+
+export async function getRoomPlayers(roomId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(players).where(eq(players.roomId, roomId));
+}
+
+export async function addQuestion(data: {
+  roomId: number;
+  question: string;
+  answer: string;
+  category: string;
+  difficulty: "سهل" | "متوسط" | "صعب";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(questions).values(data);
+  return result;
+}
+
+export async function getRoomQuestions(roomId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(questions).where(eq(questions.roomId, roomId));
+}
+
+export async function createGameState(data: {
+  roomId: number;
+  gridLetters: string;
+  gridOwners: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(gameStates).values(data);
+  return result;
+}
+
+export async function getGameState(roomId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(gameStates).where(eq(gameStates.roomId, roomId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
