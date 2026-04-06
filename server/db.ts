@@ -98,6 +98,7 @@ export async function createRoom(data: {
   gridSize: "5x5" | "4x4" | "3x3";
   gameMode: "grid_buzzer" | "buzzer_only" | "grid_only";
   rounds: number;
+  winRounds: number;
   team1Name: string;
   team1Color: string;
   team2Name: string;
