@@ -66,6 +66,12 @@ export default function PlayerRoom() {
     if (socket && !buzzerPressed) {
       setBuzzerPressed(true);
       socket.emit("game:buzzer", roomCode, parseInt(playerId));
+      // Add visual feedback
+      const buzzerEl = document.querySelector('[data-buzzer]');
+      if (buzzerEl) {
+        buzzerEl.classList.add('buzzer-success');
+        setTimeout(() => buzzerEl.classList.remove('buzzer-success'), 600);
+      }
       setTimeout(() => setBuzzerPressed(false), 2000);
     }
   };
@@ -154,12 +160,13 @@ export default function PlayerRoom() {
           {/* Buzzer Button */}
           <div className="flex justify-center">
             <Button
+              data-buzzer
               onClick={handleBuzzer}
               disabled={buzzerPressed}
-              className={`w-full md:w-96 h-24 text-2xl font-bold rounded-full transition-all ${
+              className={`w-full md:w-96 h-24 text-2xl font-bold rounded-full transition-smooth ${
                 buzzerPressed
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-yellow-400 hover:bg-yellow-500 text-black hover:scale-105 active:scale-95"
+                  : "bg-yellow-400 hover:bg-yellow-500 text-black hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl"
               }`}
             >
               {buzzerPressed ? "جاري..." : "اضغط هنا"}

@@ -90,8 +90,8 @@ export const gameRouter = router({
       const room = await getRoomByCode(input.code);
       if (!room) throw new Error("غرفة غير موجودة");
 
-      const players = await getRoomPlayers(room.id);
-      if (players.length >= 9) throw new Error("الغرفة ممتلئة");
+      const currentPlayers = await getRoomPlayers(room.id);
+      if (currentPlayers.length >= 9) throw new Error("الغرفة ممتلئة");
 
       const result = await addPlayerToRoom({
         roomId: room.id,
@@ -101,8 +101,8 @@ export const gameRouter = router({
       });
 
       // Get the inserted player ID
-      const allPlayers = await getRoomPlayers(room.id);
-      const newPlayer = allPlayers.find(p => p.name === input.playerName && p.team === input.team);
+      const updatedPlayers = await getRoomPlayers(room.id);
+      const newPlayer = updatedPlayers.find(p => p.name === input.playerName && p.team === input.team);
 
       return {
         roomId: room.id,
