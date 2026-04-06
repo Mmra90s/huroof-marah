@@ -9,6 +9,11 @@ import {
   getRoomQuestions,
   createGameState,
   getGameState,
+  getQuestionById,
+  updateQuestion,
+  deleteQuestion,
+  getQuestionsByCategory,
+  getQuestionsByDifficulty,
 } from "../db";
 import { generateRoomCode, getRandomLetters, GRID_SIZES } from "../../shared/types";
 import type { GridSize, GameMode } from "../../shared/types";
@@ -170,6 +175,57 @@ export const gameRouter = router({
     .input(z.object({ roomId: z.number().int() }))
     .query(async ({ input }) => {
       const questions = await getRoomQuestions(input.roomId);
+      return questions;
+    }),
+
+  // Update a question
+  updateQuestion: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().int(),
+        question: z.string().min(1).optional(),
+        answer: z.string().min(1).optional(),
+        category: z.string().min(1).optional(),
+        difficulty: z.enum(["سهل", "متوسط", "صعب"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { id, ...updateData } = input;
+      await updateQuestion(id, updateData);
+      return { success: true };
+    }),
+
+  // Delete a question
+  deleteQuestion: protectedProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ input }) => {
+      await deleteQuestion(input.id);
+      return { success: true };
+    }),
+
+  // Get questions by category
+  getQuestionsByCategory: publicProcedure
+    .input(
+      z.object({
+        roomId: z.number().int(),
+        category: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const questions = await getQuestionsByCategory(input.roomId, input.category);
+      return questions;
+    }),
+
+  // Get questions by difficulty
+  getQuestionsByDifficulty: publicProcedure
+    .input(
+      z.object({
+        roomId: z.number().int(),
+        difficulty: z.enum(["سهل", "متوسط", "صعب"]),
+      })
+    )
+    .query(async ({ input }) => {
+      const questions = await getQuestionsByDifficulty(input.roomId, input.difficulty);
       return questions;
     }),
 });

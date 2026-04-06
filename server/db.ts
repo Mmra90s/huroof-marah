@@ -180,3 +180,61 @@ export async function getGameState(roomId: number) {
   const result = await db.select().from(gameStates).where(eq(gameStates.roomId, roomId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
+
+// Question management functions
+export async function getQuestionById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(questions).where(eq(questions.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateQuestion(id: number, data: {
+  question?: string;
+  answer?: string;
+  category?: string;
+  difficulty?: "سهل" | "متوسط" | "صعب";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: Record<string, unknown> = {};
+  if (data.question !== undefined) updateData.question = data.question;
+  if (data.answer !== undefined) updateData.answer = data.answer;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
+
+  if (Object.keys(updateData).length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  await db.update(questions).set(updateData).where(eq(questions.id, id));
+}
+
+export async function deleteQuestion(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(questions).where(eq(questions.id, id));
+}
+
+export async function getQuestionsByCategory(roomId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  if (category === "الكل") {
+    return await db.select().from(questions).where(eq(questions.roomId, roomId));
+  }
+
+  return await db.select().from(questions)
+    .where(eq(questions.roomId, roomId) && eq(questions.category, category));
+}
+
+export async function getQuestionsByDifficulty(roomId: number, difficulty: "سهل" | "متوسط" | "صعب") {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(questions)
+    .where(eq(questions.roomId, roomId) && eq(questions.difficulty, difficulty));
+}
