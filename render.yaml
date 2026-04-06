@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: huroof-marah
+    runtime: docker
+    plan: standard
+    region: singapore
+    
+    # Build configuration
+    dockerfilePath: ./Dockerfile
+    
+    # Environment variables
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: huroof-marah-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VITE_APP_ID
+        sync: false
+      - key: OAUTH_SERVER_URL
+        value: https://api.manus.im
+      - key: VITE_OAUTH_PORTAL_URL
+        value: https://manus.im
+      - key: BUILT_IN_FORGE_API_URL
+        value: https://api.manus.im
+      - key: OWNER_NAME
+        sync: false
+      - key: OWNER_OPEN_ID
+        sync: false
+    
+    # Health check
+    healthCheckPath: /
+    
+    # Auto-deploy on push
+    autoDeploy: true
+
+databases:
+  - name: huroof-marah-db
+    databaseName: huroof_marah
+    user: huroof_user
+    region: singapore
