@@ -62,21 +62,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-600 via-purple-700 to-purple-800 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Hexagon pattern background */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <pattern id="hexagons" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <polygon points="50,0 100,25 100,75 50,100 0,75 0,25" fill="none" stroke="white" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#hexagons)" />
-        </svg>
-      </div>
-
+    <div className="hexagon-bg min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Content */}
-      <div className="relative z-10 text-center max-w-md">
+      <div className="hexagon-content text-center max-w-2xl w-full">
         {/* Logo */}
         <div className="mb-8">
           <div className="text-6xl font-bold mb-2">
