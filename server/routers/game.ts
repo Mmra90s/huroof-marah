@@ -100,9 +100,13 @@ export const gameRouter = router({
         isHost: false,
       });
 
+      // Get the inserted player ID
+      const allPlayers = await getRoomPlayers(room.id);
+      const newPlayer = allPlayers.find(p => p.name === input.playerName && p.team === input.team);
+
       return {
         roomId: room.id,
-        playerId: (result as any).insertId,
+        playerId: newPlayer?.id || 0,
         playerName: input.playerName,
       };
     }),

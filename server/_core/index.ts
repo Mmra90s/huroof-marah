@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
@@ -7,6 +6,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { Server as SocketIOServer } from "socket.io";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,6 +30,13 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  const io = new SocketIOServer(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -43,6 +50,42 @@ async function startServer() {
       createContext,
     })
   );
+
+  // WebSocket handlers
+  io.on("connection", (socket) => {
+    console.log("New WebSocket connection:", socket.id);
+
+    socket.on("game:join-room", (roomCode: string, playerId: number, playerName: string) => {
+      console.log(`Player ${playerName} (${playerId}) joining room ${roomCode}`);
+      socket.join(`room:${roomCode}`);
+      socket.emit("game:joined", { success: true, playerId });
+      io.to(`room:${roomCode}`).emit("game:player-joined", {
+        playerId,
+        playerName,
+      });
+    });
+
+    socket.on("game:buzzer", (roomCode: string, playerId: number) => {
+      console.log(`Player ${playerId} buzzed in room ${roomCode}`);
+      io.to(`room:${roomCode}`).emit("game:buzzer-pressed", {
+        playerId,
+        timestamp: Date.now(),
+      });
+    });
+
+    socket.on("game:cell-claimed", (roomCode: string, cellIndex: number, team: string) => {
+      console.log(`Cell ${cellIndex} claimed by ${team} in room ${roomCode}`);
+      io.to(`room:${roomCode}`).emit("game:cell-claimed", {
+        cellIndex,
+        team,
+      });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Client disconnected:", socket.id);
+    });
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
