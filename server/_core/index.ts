@@ -51,17 +51,30 @@ async function startServer() {
     })
   );
 
-  // WebSocket handlers
+  // WebSocket handlers - Unified socket.io setup
+  const rooms: Map<string, Set<string>> = new Map();
+  
   io.on("connection", (socket) => {
     console.log("New WebSocket connection:", socket.id);
 
     socket.on("game:join-room", (roomCode: string, playerId: number, playerName: string) => {
       console.log(`Player ${playerName} (${playerId}) joining room ${roomCode}`);
+      
       socket.join(`room:${roomCode}`);
+      
+      if (!rooms.has(roomCode)) {
+        rooms.set(roomCode, new Set());
+      }
+      rooms.get(roomCode)!.add(socket.id);
+
+      // Notify the joining player
       socket.emit("game:joined", { success: true, playerId });
+      
+      // Notify all players in the room about the new player
       io.to(`room:${roomCode}`).emit("game:player-joined", {
         playerId,
         playerName,
+        team: "team1",
       });
     });
 
@@ -83,6 +96,13 @@ async function startServer() {
 
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
+      
+      // Remove from all rooms
+      rooms.forEach((sockets, roomCode) => {
+        if (sockets.has(socket.id)) {
+          sockets.delete(socket.id);
+        }
+      });
     });
   });
 

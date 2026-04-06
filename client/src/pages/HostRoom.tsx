@@ -37,15 +37,16 @@ export default function HostRoom() {
       newSocket.emit("game:join-room", roomCode, 0, "Host");
     });
 
-    newSocket.on("game:player-joined", (player) => {
-      setPlayers((prev) => [...prev, player]);
+    newSocket.on("game:player-joined", (data) => {
+      setPlayers((prev) => [...prev, data]);
     });
 
-    newSocket.on("game:buzzer-pressed", (playerId, playerName) => {
-      setLastBuzzer({ playerId, playerName });
+    newSocket.on("game:buzzer-pressed", (data) => {
+      setLastBuzzer({ playerId: data.playerId, playerName: "" });
     });
 
-    newSocket.on("game:cell-claimed", (cellIndex, team) => {
+    newSocket.on("game:cell-claimed", (data) => {
+      const { cellIndex, team } = data;
       if (team === "team1") {
         setTeam1Score((prev) => prev + 1);
       } else {

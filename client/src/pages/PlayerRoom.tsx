@@ -41,15 +41,16 @@ export default function PlayerRoom() {
       setLoading(false);
     });
 
-    newSocket.on("game:cell-claimed", (cellIndex, claimedTeam) => {
-      if (claimedTeam === "team1") {
+    newSocket.on("game:cell-claimed", (data) => {
+      const { cellIndex, team } = data;
+      if (team === "team1") {
         setTeam1Score((prev) => prev + 1);
       } else {
         setTeam2Score((prev) => prev + 1);
       }
       setOwners((prev) => {
         const newOwners = [...prev];
-        newOwners[cellIndex] = claimedTeam;
+        newOwners[cellIndex] = team;
         return newOwners;
       });
     });
